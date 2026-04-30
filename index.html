@@ -185,8 +185,8 @@
     <div class="eyebrow">Built for freelancers, not corporations</div>
     <h1>Finally know <em>exactly</em> what your money is doing.</h1>
     <p class="hero-sub">Income smoothing, automatic tax estimation, and client profitability — in one tool built for how freelancers actually get paid.</p>
-    <div class="form-wrap" id="waitlist">
-      <input type="email" placeholder="your@email.com" id="email-input" />
+    <div class="form-wrap">
+      <input type="email" placeholder="your@email.com" id="waitlist" />
       <button onclick="handleSubmit()">Get Early Access</button>
     </div>
     <p class="form-note">Free during beta. No credit card. Cancel anytime.</p>
@@ -309,9 +309,9 @@
 
   <script>
     function handleSubmit() {
-      const email = document.getElementById('email-input').value;
+      const email = document.getElementById('waitlist').value;
       if (!email || !email.includes('@')) {
-        document.getElementById('email-input').style.borderColor = '#c4622d';
+        document.getElementById('waitlist').style.borderColor = '#c4622d';
         return;
       }
       fetch('https://formspree.io/f/xqenzeqk', {
@@ -322,7 +322,7 @@
       document.querySelector('.form-wrap').style.display = 'none';
       document.getElementById('success-msg').style.display = 'block';
     }
-    document.getElementById('email-input').addEventListener('keypress', function(e) {
+    document.getElementById('waitlist').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') handleSubmit();
     });
   </script>
