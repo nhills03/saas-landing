@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoloTax — The financial OS for freelancers</title>
+  <meta name="description" content="Know exactly what to pay yourself, set aside for taxes, and which clients are actually worth your time. Built for freelancers, not corporations." />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f4ef;
+      --surface: #efeae2;
+      --border: #ddd7cc;
+      --text: #1a1814;
+      --muted: #8a8278;
+      --accent: #2d5a3d;
+      --accent-light: #4a7c5f;
+      --accent-pale: #e8f0eb;
+      --warn: #c4622d;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Instrument Sans', sans-serif; font-weight: 300; line-height: 1.7; min-height: 100vh; overflow-x: hidden; }
+
+    /* NAV */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(247,244,239,0.94); backdrop-filter: blur(10px); z-index: 100; }
+    .logo { font-family: 'Instrument Serif', serif; font-size: 1.3rem; color: var(--accent); }
+    .logo span { color: var(--warn); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-chat { font-size: 0.82rem; color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 1px; transition: opacity 0.2s; }
+    .nav-chat:hover { opacity: 0.7; }
+    .nav-cta { background: var(--accent); color: #fff; border: none; padding: 0.55rem 1.3rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; letter-spacing: 0.04em; text-decoration: none; transition: background 0.2s; border-radius: 2px; }
+    .nav-cta:hover { background: var(--accent-light); }
+
+    /* HERO */
+    .hero { max-width: 780px; margin: 0 auto; padding: 6rem 2.5rem 4rem; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); background: var(--accent-pale); border: 1px solid #c2d9ca; padding: 0.3rem 0.75rem; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.7s ease forwards 0.1s; }
+    .eyebrow::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+    h1 { font-family: 'Instrument Serif', serif; font-size: clamp(2.6rem, 5.5vw, 4.2rem); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s ease forwards 0.25s; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub { font-size: 1.05rem; color: var(--muted); max-width: 520px; margin-bottom: 2.5rem; opacity: 0; animation: fadeUp 0.7s ease forwards 0.4s; }
+    .form-wrap { display: flex; gap: 0; max-width: 440px; opacity: 0; animation: fadeUp 0.7s ease forwards 0.55s; }
+    .form-wrap input { flex: 1; background: #fff; border: 1px solid var(--border); border-right: none; color: var(--text); padding: 0.8rem 1.1rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; border-radius: 2px 0 0 2px; }
+    .form-wrap input:focus { border-color: var(--accent); }
+    .form-wrap input::placeholder { color: var(--muted); }
+    .form-wrap button { background: var(--accent); color: #fff; border: none; padding: 0.8rem 1.4rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em; cursor: pointer; white-space: nowrap; transition: background 0.2s; border-radius: 0 2px 2px 0; }
+    .form-wrap button:hover { background: var(--accent-light); }
+    .form-note { font-size: 0.73rem; color: var(--muted); margin-top: 0.6rem; opacity: 0; animation: fadeUp 0.7s ease forwards 0.7s; }
+    .success-msg { display: none; font-size: 0.88rem; color: var(--accent); font-weight: 500; margin-top: 0.75rem; }
+
+    /* FOUNDER STRIP */
+    .founder-strip { background: var(--accent); color: #fff; padding: 1.5rem 2.5rem; }
+    .founder-inner { max-width: 780px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+    .founder-text { font-size: 0.88rem; line-height: 1.6; color: rgba(255,255,255,0.85); }
+    .founder-text strong { color: #fff; font-weight: 500; }
+    .founder-contact { display: flex; gap: 0.75rem; flex-shrink: 0; }
+    .founder-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.5rem 1.1rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; text-decoration: none; transition: background 0.2s; border-radius: 2px; white-space: nowrap; }
+    .founder-btn:hover { background: rgba(255,255,255,0.25); }
+    .founder-btn.primary { background: #fff; color: var(--accent); border-color: #fff; }
+    .founder-btn.primary:hover { opacity: 0.9; }
+
+    /* SECTIONS */
+    .reality { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 3.5rem 2.5rem; }
+    .reality-inner, .solution, .how-inner, .faq-inner, .feedback-inner { max-width: 780px; margin: 0 auto; }
+    .section-label { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 2.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* PAIN CARDS */
+    .pain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .pain-card { padding: 1.5rem; background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--warn); transition: transform 0.2s; }
+    .pain-card:hover { transform: translateY(-2px); }
+    .pain-card .quote { font-size: 0.78rem; color: var(--warn); font-style: italic; margin-bottom: 0.5rem; line-height: 1.5; }
+    .pain-card h3 { font-family: 'Instrument Serif', serif; font-size: 1rem; font-weight: 400; margin-bottom: 0.4rem; }
+    .pain-card p { font-size: 0.84rem; color: var(--muted); line-height: 1.6; }
+
+    /* FEATURES */
+    .solution { padding: 4rem 2.5rem; }
+    .features { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid var(--border); }
+    .feature { padding: 2rem 1.75rem; border-right: 1px solid var(--border); transition: background 0.2s; }
+    .feature:last-child { border-right: none; }
+    .feature:hover { background: var(--accent-pale); }
+    .feature-num { font-family: 'Instrument Serif', serif; font-size: 2.5rem; color: var(--border); line-height: 1; margin-bottom: 1rem; }
+    .feature h3 { font-family: 'Instrument Serif', serif; font-size: 1.05rem; font-weight: 400; margin-bottom: 0.5rem; color: var(--accent); }
+    .feature p { font-size: 0.84rem; color: var(--muted); line-height: 1.6; }
+
+    /* HOW IT WORKS */
+    .how { background: var(--accent); color: #fff; padding: 4rem 2.5rem; }
+    .how .section-label { color: rgba(255,255,255,0.4); }
+    .how .section-label::after { background: rgba(255,255,255,0.15); }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); margin-top: 1rem; }
+    .step { background: var(--accent); padding: 1.75rem 1.5rem; transition: background 0.2s; }
+    .step:hover { background: var(--accent-light); }
+    .step-num { font-family: 'Instrument Serif', serif; font-size: 1.8rem; color: rgba(255,255,255,0.2); margin-bottom: 0.75rem; line-height: 1; }
+    .step h3 { font-size: 0.88rem; font-weight: 500; margin-bottom: 0.4rem; }
+    .step p { font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.55; }
+
+    /* NUMBERS */
+    .numbers { max-width: 780px; margin: 0 auto; padding: 4rem 2.5rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; border-bottom: 1px solid var(--border); }
+    .number-item { text-align: center; }
+    .number-item .num { font-family: 'Instrument Serif', serif; font-size: 3rem; color: var(--accent); line-height: 1; display: block; margin-bottom: 0.4rem; }
+    .number-item p { font-size: 0.82rem; color: var(--muted); }
+
+    /* FAQ */
+    .faq { padding: 4rem 2.5rem; border-bottom: 1px solid var(--border); }
+    .faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { width: 100%; background: none; border: none; padding: 1.25rem 1.5rem; text-align: left; font-family: 'Instrument Sans', sans-serif; font-size: 0.9rem; font-weight: 400; color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; transition: background 0.2s; }
+    .faq-q:hover { background: var(--surface); }
+    .faq-q .chevron { font-size: 0.8rem; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
+    .faq-q.open .chevron { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 0 1.5rem 1.25rem; font-size: 0.86rem; color: var(--muted); line-height: 1.7; background: var(--surface); }
+    .faq-a.open { display: block; }
+    .faq-a a { color: var(--accent); }
+
+    /* FEEDBACK */
+    .feedback { padding: 4rem 2.5rem; background: var(--surface); border-top: 1px solid var(--border); }
+    .feedback h2 { font-family: 'Instrument Serif', serif; font-size: 1.8rem; font-weight: 400; margin-bottom: 0.5rem; }
+    .feedback-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 2rem; max-width: 500px; }
+    .tally-embed { width: 100%; border: 1px solid var(--border); background: #fff; min-height: 400px; }
+
+    /* PRICING */
+    .pricing { max-width: 500px; margin: 0 auto; padding: 5rem 2.5rem; text-align: center; }
+    .pricing h2 { font-family: 'Instrument Serif', serif; font-size: 2rem; font-weight: 400; margin-bottom: 0.5rem; }
+    .pricing-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 2.5rem; }
+    .price-card { border: 1px solid var(--border); padding: 2.5rem 2rem; position: relative; background: #fff; }
+    .early-badge { position: absolute; top: -0.65rem; left: 50%; transform: translateX(-50%); background: var(--warn); color: #fff; font-size: 0.62rem; font-weight: 500; letter-spacing: 0.14em; padding: 0.22rem 0.8rem; text-transform: uppercase; white-space: nowrap; }
+    .price-amount { font-family: 'Instrument Serif', serif; font-size: 4rem; color: var(--accent); line-height: 1; margin-bottom: 0.2rem; }
+    .price-period { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2rem; }
+    .price-features { list-style: none; margin-bottom: 2rem; text-align: left; }
+    .price-features li { font-size: 0.86rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); display: flex; gap: 0.75rem; align-items: flex-start; }
+    .price-features li::before { content: '✓'; color: var(--accent); font-weight: 500; flex-shrink: 0; }
+    .cta-btn { display: block; width: 100%; background: var(--accent); color: #fff; border: none; padding: 1rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em; cursor: pointer; transition: background 0.2s; text-decoration: none; text-align: center; border-radius: 2px; }
+    .cta-btn:hover { background: var(--accent-light); }
+    .price-note { font-size: 0.73rem; color: var(--muted); margin-top: 1.25rem; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); padding: 2rem 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    footer p { font-size: 0.76rem; color: var(--muted); }
+    .footer-logo { font-family: 'Instrument Serif', serif; font-size: 1rem; color: var(--accent); }
+
+    /* CHAT BUBBLE */
+    .chat-bubble { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 200; }
+    .chat-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 0.75rem 1.25rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 20px rgba(45,90,61,0.35); transition: background 0.2s, transform 0.2s; text-decoration: none; }
+    .chat-btn:hover { background: var(--accent-light); transform: translateY(-2px); }
+    .chat-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-chat { display: none; }
+      .hero { padding: 3.5rem 1.25rem 3rem; }
+      .pain-grid { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
+      .feature { border-right: none; border-bottom: 1px solid var(--border); }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .numbers { grid-template-columns: 1fr; }
+      .form-wrap { flex-direction: column; }
+      .form-wrap input { border-right: 1px solid var(--border); border-bottom: none; border-radius: 2px 2px 0 0; }
+      .form-wrap button { border-radius: 0 0 2px 2px; }
+      .reality, .solution, .faq, .feedback, .pricing { padding: 2.5rem 1.25rem; }
+      .founder-inner { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">Solo<span>Tax</span></div>
+    <div class="nav-right">
+      <a href="mailto:nshills03@gmail.com?subject=SoloTax Question&body=Hi Nick," class="nav-chat">Chat with Nick →</a>
+      <a href="#" onclick="scrollToForm()" class="nav-cta">Join Waitlist</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="eyebrow">Built for freelancers, not corporations</div>
+    <h1>Finally know <em>exactly</em> what your money is doing.</h1>
+    <p class="hero-sub">Income smoothing, automatic tax estimation, and client profitability — in one tool built for how freelancers actually get paid.</p>
+    <div class="form-wrap" id="form-section">
+      <input type="email" placeholder="your@email.com" id="email-input" />
+      <button onclick="handleSubmit()">Get Early Access</button>
+    </div>
+    <p class="form-note">Free during beta. No credit card. Cancel anytime.</p>
+    <p class="success-msg" id="success-msg">You're on the list. Nick will be in touch personally.</p>
+  </section>
+
+  <!-- FOUNDER STRIP -->
+  <div class="founder-strip">
+    <div class="founder-inner">
+      <p class="founder-text">
+        <strong>Hi, I'm Nick Hills</strong> — the one person behind SoloTax. Right now, I'm your entire support team. 
+        Every email you send goes directly to me. No tickets, no bots, no waiting. 
+        In time there will be a full team — for now, you get the founder.
+      </p>
+      <div class="founder-contact">
+        <a href="mailto:nshills03@gmail.com?subject=SoloTax Question&body=Hi Nick," class="founder-btn primary">Email Nick directly</a>
+        <a href="#feedback" class="founder-btn">Leave feedback</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIN POINTS -->
+  <section class="reality">
+    <div class="reality-inner">
+      <p class="section-label">What real users are saying about existing tools</p>
+      <div class="pain-grid">
+        <div class="pain-card">
+          <p class="quote">"Still awaiting a response two days later."</p>
+          <h3>No real customer support exists.</h3>
+          <p>Every tool gates support behind paid tiers or buries you in a help center maze. Nick answers personally — usually within a few hours.</p>
+        </div>
+        <div class="pain-card">
+          <p class="quote">"They suggested manually recreating transactions that didn't import."</p>
+          <h3>Bank feeds that break constantly.</h3>
+          <p>FreshBooks and Wave users report years of unreliable bank connections. SoloTax uses reliable sync infrastructure — and tells you honestly what's free vs. paid.</p>
+        </div>
+        <div class="pain-card">
+          <p class="quote">"Charge ridiculous transaction fees and then hold your money for weeks."</p>
+          <h3>Your money gets held hostage.</h3>
+          <p>Bonsai and HoneyBook users report funds withheld for days or weeks with no explanation. SoloTax doesn't process or touch your payments — ever.</p>
+        </div>
+        <div class="pain-card">
+          <p class="quote">"Bases pricing on the number of clients you have."</p>
+          <h3>Nickel-and-dimed at every turn.</h3>
+          <p>FreshBooks charges per client. Wave gates bank feeds. QuickBooks locks features behind higher tiers. SoloTax: one flat price, whether you have 2 clients or 200.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="solution">
+    <p class="section-label">How SoloTax fixes it</p>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-num">01</div>
+        <h3>Income Smoother</h3>
+        <p>Tell SoloTax your monthly expenses. It calculates a safe "salary" you can pay yourself based on your actual balance and outstanding invoices — no feast or famine.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">02</div>
+        <h3>Tax Estimator</h3>
+        <p>Every time income comes in, SoloTax calculates your estimated quarterly tax obligation by state automatically. Set aside the right amount before you spend it.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">03</div>
+        <h3>Client Profitability</h3>
+        <p>Track time and revenue per client. See your real hourly rate after revisions and meetings. Know exactly which clients to keep, raise rates on, or fire.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <div class="how-inner">
+      <p class="section-label">How it works</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Add your income</h3>
+          <p>Log payments as they come in, or upload a CSV. No bank connection required to start.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Set your expenses</h3>
+          <p>Tell SoloTax what you actually spend each month. It builds your financial baseline.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Get your numbers</h3>
+          <p>Your safe pay, tax set-aside, and client profitability update automatically.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Stop guessing</h3>
+          <p>Every financial decision you make as a freelancer gets clearer from here.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <div class="numbers">
+    <div class="number-item">
+      <span class="num">70M+</span>
+      <p>freelancers in the US alone — none of them have a tool built for how they actually get paid</p>
+    </div>
+    <div class="number-item">
+      <span class="num">$35+</span>
+      <p>what QuickBooks costs per month for features a solo freelancer will never use</p>
+    </div>
+    <div class="number-item">
+      <span class="num">$19</span>
+      <p>what SoloTax costs — less than one hour of your time, saves dozens every year</p>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <div class="faq-inner">
+      <p class="section-label">Common questions</p>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Do I need to connect my bank account? <span class="chevron">▼</span></button>
+          <div class="faq-a">No — you can log income manually or upload a CSV to start. Bank sync will be available as a paid add-on when it launches, using reliable infrastructure. You'll never be forced to connect a bank to use the core features.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Does SoloTax process or hold my payments? <span class="chevron">▼</span></button>
+          <div class="faq-a">Never. SoloTax is a financial tracking and planning tool — it doesn't touch your money, process transactions, or have any access to your payment accounts. Your funds stay exactly where they are.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">How does the tax estimator work? <span class="chevron">▼</span></button>
+          <div class="faq-a">When you log income, SoloTax applies your state's self-employment tax rate and federal estimated tax rate to calculate how much you should set aside for your next quarterly payment. It's an estimate — not a substitute for an accountant — but it's accurate enough to stop the surprise.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">What if I have a question or something isn't working? <span class="chevron">▼</span></button>
+          <div class="faq-a">Email Nick directly at <a href="mailto:nshills03@gmail.com">nshills03@gmail.com</a>. Right now SoloTax is a one-person operation and Nick handles all support personally. Response time is typically a few hours, never more than 24.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">When will SoloTax launch? <span class="chevron">▼</span></button>
+          <div class="faq-a">SoloTax is currently in early development. Joining the waitlist gets you early access before public launch, locked-in early pricing, and direct input into what gets built first.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Is the $19/month price locked in? <span class="chevron">▼</span></button>
+          <div class="faq-a">For the first 100 waitlist signups, yes — that price is locked in for as long as you stay subscribed, even if the public launch price is higher.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEEDBACK -->
+  <section class="feedback" id="feedback">
+    <div class="feedback-inner">
+      <p class="section-label">Shape what gets built</p>
+      <h2>Your feedback builds SoloTax.</h2>
+      <p class="feedback-sub">This is a one-person project. Nick reads every response and uses them to decide what to build next. If something isn't working or you need something that doesn't exist yet — say it here.</p>
+      <iframe class="tally-embed" data-tally-src="https://tally.so/embed/LZ5PRO?alignLeft=1&hideTitle=1&transparentBackground=1" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0" title="SoloTax Feedback"></iframe>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing">
+    <h2>Simple pricing.</h2>
+    <p class="pricing-sub">One plan. Everything included. No per-client fees, no feature gates, no surprises.</p>
+    <div class="price-card">
+      <div class="early-badge">Early Access — First 100 Users</div>
+      <div class="price-amount">$19</div>
+      <div class="price-period">per month</div>
+      <ul class="price-features">
+        <li>Income smoothing calculator</li>
+        <li>Automatic quarterly tax estimation (all US states)</li>
+        <li>Client profitability tracker</li>
+        <li>Unlimited clients and income entries</li>
+        <li>CSV export for your accountant</li>
+        <li>Direct support from Nick — no ticket system</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="#" onclick="scrollToForm()" class="cta-btn">Join the Waitlist</a>
+    </div>
+    <p class="price-note">Early access pricing locked for the first 100 signups. Price may increase at public launch.</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">SoloTax</div>
+    <p>Built by Nick Hills — one person, one mission. Questions? <a href="mailto:nshills03@gmail.com" style="color:var(--accent)">Email Nick directly.</a></p>
+    <p>© 2026 SoloTax</p>
+  </footer>
+
+  <!-- CHAT BUBBLE -->
+  <a href="mailto:nshills03@gmail.com?subject=SoloTax Question&body=Hi Nick," class="chat-bubble chat-btn">
+    <span class="chat-dot"></span>
+    Chat with Nick
+  </a>
+
+  <script>
+    function scrollToForm() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => document.getElementById('email-input').focus(), 600);
+    }
+
+    function handleSubmit() {
+      const email = document.getElementById('email-input').value;
+      if (!email || !email.includes('@')) {
+        document.getElementById('email-input').style.borderColor = '#c4622d';
+        return;
+      }
+      fetch('https://formspree.io/f/xqenzeqk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email, product: 'SoloTax' })
+      }).catch(() => {});
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    }
+
+    function toggleFaq(btn) {
+      const answer = btn.nextElementSibling;
+      const isOpen = answer.classList.contains('open');
+      document.querySelectorAll('.faq-a.open').forEach(a => a.classList.remove('open'));
+      document.querySelectorAll('.faq-q.open').forEach(q => q.classList.remove('open'));
+      if (!isOpen) {
+        answer.classList.add('open');
+        btn.classList.add('open');
+      }
+    }
+
+    document.getElementById('email-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleSubmit();
+    });
+
+    // Tally embed
+    var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w,s.onload=v,s.onerror=v,d.body.appendChild(s);}
+  </script>
+
+</body>
+</html>
