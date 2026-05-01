@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoloTax</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f7f4ef;
+      color: #1a1814;
+      font-family: 'Instrument Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      min-height: 100vh;
+      padding: 5rem 1.5rem;
+    }
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2.8rem, 8vw, 4.5rem);
+      font-weight: 400;
+      text-align: center;
+      color: #2d5a3d;
+      margin-bottom: 3rem;
+      letter-spacing: -0.02em;
+    }
+    .title span { color: #c4622d; }
+    p {
+      font-size: 1rem;
+      color: #5a5550;
+      margin-bottom: 1.25rem;
+    }
+    ul {
+      list-style: none;
+      margin-bottom: 1.25rem;
+      padding: 0;
+    }
+    ul li {
+      font-size: 1rem;
+      color: #5a5550;
+      padding: 0.2rem 0;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+    ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: #ddd7cc;
+    }
+    a { color: #2d5a3d; }
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd7cc;
+      margin: 2.5rem 0;
+    }
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #aaa49e;
+      margin-bottom: 1.25rem;
+    }
+    .form-wrap {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0.6rem;
+    }
+    .form-wrap input {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd7cc;
+      border-right: none;
+      color: #1a1814;
+      padding: 0.75rem 1rem;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      border-radius: 2px 0 0 2px;
+    }
+    .form-wrap input:focus { border-color: #2d5a3d; }
+    .form-wrap input::placeholder { color: #aaa49e; }
+    .form-wrap button {
+      background: #2d5a3d;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 0 2px 2px 0;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .form-wrap button:hover { background: #4a7c5f; }
+    .form-note { font-size: 0.78rem; color: #aaa49e; }
+    .form-note a { color: #aaa49e; }
+    .success { display: none; font-size: 0.9rem; color: #2d5a3d; margin-top: 0.5rem; }
+    .tally-wrap { border: 1px solid #ddd7cc; background: #fff; }
+    footer { margin-top: 3.5rem; font-size: 0.75rem; color: #aaa49e; }
+    footer a { color: #aaa49e; }
+    @media (max-width: 480px) {
+      body { padding: 3rem 1.25rem; }
+      .form-wrap { flex-direction: column; }
+      .form-wrap input { border-right: 1px solid #ddd7cc; border-bottom: none; border-radius: 2px 2px 0 0; }
+      .form-wrap button { border-radius: 0 0 2px 2px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="title">Solo<span>Tax</span></div>
+
+    <p>I built a financial tool for freelancers.</p>
+
+    <p>It tries to answer three questions:</p>
+
+    <ul>
+      <li>How much can I pay myself this month?</li>
+      <li>How much should I set aside for taxes?</li>
+      <li>Which clients are actually worth my time?</li>
+    </ul>
+
+    <p>It's free, so if you want access, email me at <a href="mailto:nick@solotax.org">nick@solotax.org</a> and I'll set you up.</p>
+
+    <hr class="divider" />
+
+    <p class="section-label">Join the waitlist</p>
+
+    <div class="form-wrap">
+      <input type="email" placeholder="your@email.com" id="email-input" />
+      <button onclick="handleSubmit()">I'm interested</button>
+    </div>
+    <p class="form-note">Or email me directly at <a href="mailto:nick@solotax.org">nick@solotax.org</a>.</p>
+    <p class="success" id="success-msg">Got it. I'll be in touch.</p>
+
+    <hr class="divider" />
+
+    <p class="section-label">What do you need?</p>
+
+    <p>If something's missing or you wish it existed, tell me here.</p>
+
+    <div class="tally-wrap">
+      <iframe data-tally-src="https://tally.so/embed/LZ5PRO?alignLeft=1&hideTitle=1&transparentBackground=1" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0" title="SoloTax Feedback"></iframe>
+    </div>
+
+    <footer>
+      <p>SoloTax &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a></p>
+    </footer>
+
+  </div>
+
+  <script>
+    function handleSubmit() {
+      const email = document.getElementById('email-input').value;
+      if (!email || !email.includes('@')) {
+        document.getElementById('email-input').style.borderColor = '#c4622d';
+        return;
+      }
+      fetch('https://formspree.io/f/xqenzeqk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email, product: 'SoloTax' })
+      }).catch(() => {});
+      document.querySelector('.form-wrap').style.display = 'none';
+      document.querySelector('.form-note').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    }
+    document.getElementById('email-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleSubmit();
+    });
+    var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w,s.onload=v,s.onerror=v,d.body.appendChild(s);}
+  </script>
+</body>
+</html>
