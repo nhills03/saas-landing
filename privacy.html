@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy — SoloTax</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f7f4ef;
+      color: #1a1814;
+      font-family: 'Instrument Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      min-height: 100vh;
+      padding: 5rem 1.5rem;
+    }
+    .wrap { max-width: 520px; margin: 0 auto; }
+    .back { font-size: 0.78rem; color: #aaa49e; text-decoration: none; display: inline-block; margin-bottom: 3rem; }
+    .back:hover { color: #2d5a3d; }
+    .title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 400;
+      color: #1a1814;
+      margin-bottom: 2rem;
+      letter-spacing: -0.01em;
+    }
+    p { font-size: 1rem; color: #5a5550; margin-bottom: 1.25rem; }
+    a { color: #2d5a3d; }
+    ul { list-style: none; margin-bottom: 1.25rem; padding: 0; }
+    ul li { font-size: 1rem; color: #5a5550; padding: 0.2rem 0 0.2rem 1.25rem; position: relative; }
+    ul li::before { content: '—'; position: absolute; left: 0; color: #ddd7cc; }
+    .divider { border: none; border-top: 1px solid #ddd7cc; margin: 2.5rem 0; }
+    .updated { font-size: 0.75rem; color: #aaa49e; margin-top: 2rem; }
+    footer { margin-top: 3.5rem; font-size: 0.75rem; color: #aaa49e; }
+    footer a { color: #aaa49e; }
+    @media (max-width: 480px) { body { padding: 3rem 1.25rem; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <a href="/" class="back">← SoloTax</a>
+
+    <h1 class="title">Privacy</h1>
+
+    <p>SoloTax is a calculator. It runs in your browser.</p>
+
+    <p>When you use the tax estimator or income smoother, the numbers you enter never leave your device. Nothing is sent to a server. Nothing is stored. There is no database of your financial information.</p>
+
+    <hr class="divider" />
+
+    <p>The only data SoloTax collects:</p>
+
+    <ul>
+      <li>Your email, if you join the waitlist</li>
+      <li>Your responses, if you fill out the feedback form</li>
+    </ul>
+
+    <p>Both go to third-party services (Formspree and Google Forms) and are used only to contact you about SoloTax and to improve the product. They are never sold or shared.</p>
+
+    <hr class="divider" />
+
+    <p>When the client profitability tracker launches, it will require storing data across sessions. This page will be updated before that feature goes live with specifics on how that data is stored and protected.</p>
+
+    <p>If you have questions, email <a href="mailto:nick@solotax.org">nick@solotax.org</a>.</p>
+
+    <p class="updated">Last updated: May 2026</p>
+
+    <footer>
+      <p>SoloTax &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a></p>
+    </footer>
+
+  </div>
+</body>
+</html>
