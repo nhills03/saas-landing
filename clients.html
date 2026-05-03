@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Profitability — SoloTax</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: monospace; background: #fff; color: #111; padding: 2rem 1.5rem; font-size: 14px; line-height: 1.6; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    h1 { font-size: 1rem; font-weight: bold; margin-bottom: 0.25rem; }
+    .sub { color: #666; margin-bottom: 2rem; font-size: 0.85rem; }
+    .back { font-size: 0.8rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 1.5rem; }
+    .back:hover { color: #000; }
+    .note { font-size: 0.78rem; color: #888; margin-bottom: 1rem; background: #f5f5f5; padding: 0.6rem 0.75rem; }
+
+    /* CLIENT CARD */
+    .client-card { border: 1px solid #ddd; padding: 1rem; margin-bottom: 0.75rem; position: relative; }
+    .client-card-header { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #999; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+    .client-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+    .client-grid-wide { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.6rem; }
+    label { display: block; font-size: 0.75rem; color: #555; margin-bottom: 0.2rem; }
+    input { width: 100%; padding: 0.4rem 0.5rem; font-family: monospace; font-size: 0.85rem; border: 1px solid #ccc; background: #fafafa; color: #111; outline: none; }
+    input:focus { border-color: #111; background: #fff; }
+    .remove-card { background: none; border: none; font-family: monospace; font-size: 0.8rem; color: #999; cursor: pointer; padding: 0; }
+    .remove-card:hover { color: #b91c1c; }
+
+    .add-btn { background: none; border: 1px solid #ccc; font-family: monospace; font-size: 0.8rem; padding: 0.5rem 1rem; cursor: pointer; color: #444; margin-bottom: 1rem; }
+    .add-btn:hover { border-color: #111; color: #111; }
+
+    .target-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+
+    button#calc { width: 100%; padding: 0.65rem; background: #111; color: #fff; border: none; font-family: monospace; font-size: 0.9rem; cursor: pointer; }
+    button#calc:hover { background: #333; }
+
+    #results { display: none; margin-top: 2rem; border-top: 1px solid #ccc; padding-top: 1.5rem; }
+
+    /* RESULTS TABLE */
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 1.5rem; }
+    th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; padding: 0.4rem 0.5rem; border-bottom: 2px solid #111; }
+    td { padding: 0.45rem 0.5rem; border-bottom: 1px dashed #eee; vertical-align: middle; }
+    tr:hover td { background: #f9f9f9; }
+    .verdict { font-size: 0.7rem; padding: 0.15rem 0.4rem; }
+    .v-keep { background: #f0fdf4; color: #15803d; }
+    .v-raise { background: #fffbeb; color: #92400e; }
+    .v-reconsider { background: #fef2f2; color: #b91c1c; }
+    .rank-num { color: #999; font-size: 0.78rem; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .summary-box { border: 1px solid #ddd; padding: 0.75rem; }
+    .summary-box .s-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 0.25rem; }
+    .summary-box .s-value { font-size: 1.2rem; font-weight: bold; }
+    .good { color: #15803d; }
+    .warn { color: #b91c1c; }
+    .caution { color: #92400e; }
+
+    footer { margin-top: 3rem; font-size: 0.72rem; color: #999; border-top: 1px solid #eee; padding-top: 1rem; }
+    footer a { color: #999; }
+
+    @media (max-width: 520px) {
+      .client-grid { grid-template-columns: 1fr 1fr; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      body { padding: 1.25rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="/" class="back">← solotax.org</a>
+  <h1>Client Profitability Tracker</h1>
+  <p class="sub">Find out which clients are actually worth your time. Runs in your browser. Nothing is stored.</p>
+
+  <p class="note">Data clears when you close the tab. For now this is a one-session tool — persistent tracking is coming.</p>
+
+  <div class="target-row">
+    <div>
+      <label>Your target hourly rate ($)</label>
+      <input type="number" id="target-rate" placeholder="75" min="1" value="75" />
+    </div>
+    <div>
+      <label>Min acceptable rate ($)</label>
+      <input type="number" id="min-rate" placeholder="50" min="1" value="50" />
+    </div>
+  </div>
+
+  <div id="client-list">
+    <!-- Client cards injected here -->
+  </div>
+
+  <button class="add-btn" onclick="addClient()">+ Add client</button>
+
+  <button id="calc" onclick="calculate()">Calculate profitability</button>
+
+  <div id="results">
+    <div class="summary-grid" id="summary-grid"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Client</th>
+          <th>Billed</th>
+          <th>Total hrs</th>
+          <th>Eff. rate/hr</th>
+          <th>vs target</th>
+          <th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Estimates only. Not financial advice. &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a></p>
+  </footer>
+
+</div>
+<script>
+  var clientCount = 0;
+
+  function addClient() {
+    clientCount++;
+    var id = clientCount;
+    var card = document.createElement('div');
+    card.className = 'client-card';
+    card.id = 'client-' + id;
+    card.innerHTML = `
+      <div class="client-card-header">
+        <span>Client ${id}</span>
+        <button class="remove-card" onclick="removeClient(${id})">remove</button>
+      </div>
+      <div>
+        <label>Client name</label>
+        <input type="text" id="name-${id}" placeholder="e.g. Acme Corp" />
+      </div>
+      <div class="client-grid" style="margin-top:0.6rem">
+        <div>
+          <label>Total billed ($)</label>
+          <input type="number" id="billed-${id}" placeholder="5000" min="0" />
+        </div>
+        <div>
+          <label>Hours worked</label>
+          <input type="number" id="hours-${id}" placeholder="40" min="0" step="0.5" />
+        </div>
+        <div>
+          <label>Revision rounds</label>
+          <input type="number" id="revisions-${id}" placeholder="2" min="0" value="0" />
+        </div>
+      </div>
+      <div class="client-grid-wide">
+        <div>
+          <label>Extra hrs (meetings, admin)</label>
+          <input type="number" id="extra-${id}" placeholder="3" min="0" step="0.5" value="0" />
+        </div>
+        <div>
+          <label>Hrs per revision round</label>
+          <input type="number" id="rev-hrs-${id}" placeholder="2" min="0" step="0.5" value="2" />
+        </div>
+      </div>
+    `;
+    document.getElementById('client-list').appendChild(card);
+  }
+
+  function removeClient(id) {
+    var card = document.getElementById('client-' + id);
+    if (card) card.remove();
+  }
+
+  function calculate() {
+    var targetRate = parseFloat(document.getElementById('target-rate').value) || 75;
+    var minRate = parseFloat(document.getElementById('min-rate').value) || 50;
+
+    var clients = [];
+    var cards = document.querySelectorAll('.client-card');
+    cards.forEach(function(card) {
+      var id = card.id.replace('client-', '');
+      var name = document.getElementById('name-' + id).value || ('Client ' + id);
+      var billed = parseFloat(document.getElementById('billed-' + id).value) || 0;
+      var hours = parseFloat(document.getElementById('hours-' + id).value) || 0;
+      var revisions = parseFloat(document.getElementById('revisions-' + id).value) || 0;
+      var extra = parseFloat(document.getElementById('extra-' + id).value) || 0;
+      var revHrs = parseFloat(document.getElementById('rev-hrs-' + id).value) || 2;
+      if (billed <= 0 || hours <= 0) return;
+      var totalHours = hours + extra + (revisions * revHrs);
+      var effRate = billed / totalHours;
+      clients.push({ name, billed, hours, revisions, extra, revHrs, totalHours, effRate });
+    });
+
+    if (clients.length === 0) { alert('Add at least one client with billed amount and hours.'); return; }
+
+    // Sort by effective rate descending
+    clients.sort(function(a, b) { return b.effRate - a.effRate; });
+
+    var totalBilled = clients.reduce(function(s, c) { return s + c.billed; }, 0);
+    var totalHours = clients.reduce(function(s, c) { return s + c.totalHours; }, 0);
+    var avgRate = totalBilled / totalHours;
+    var bestClient = clients[0];
+    var worstClient = clients[clients.length - 1];
+
+    // Summary
+    var sg = document.getElementById('summary-grid');
+    sg.innerHTML = `
+      <div class="summary-box">
+        <div class="s-label">Avg effective rate</div>
+        <div class="s-value ${avgRate >= targetRate ? 'good' : avgRate >= minRate ? 'caution' : 'warn'}">$${Math.round(avgRate)}/hr</div>
+      </div>
+      <div class="summary-box">
+        <div class="s-label">Best client</div>
+        <div class="s-value good">${bestClient.name}</div>
+      </div>
+      <div class="summary-box">
+        <div class="s-label">Worst client</div>
+        <div class="s-value warn">${worstClient.name}</div>
+      </div>
+    `;
+
+    // Table
+    var tbody = document.getElementById('results-body');
+    tbody.innerHTML = '';
+    clients.forEach(function(c, i) {
+      var diff = c.effRate - targetRate;
+      var diffStr = (diff >= 0 ? '+' : '') + '$' + Math.abs(Math.round(diff)) + '/hr';
+      var diffClass = diff >= 0 ? 'good' : diff >= (minRate - targetRate) ? 'caution' : 'warn';
+      var verdict, vClass;
+      if (c.effRate >= targetRate) { verdict = 'KEEP'; vClass = 'v-keep'; }
+      else if (c.effRate >= minRate) { verdict = 'RAISE RATES'; vClass = 'v-raise'; }
+      else { verdict = 'RECONSIDER'; vClass = 'v-reconsider'; }
+      var row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="rank-num">${i+1}</td>
+        <td><strong>${c.name}</strong></td>
+        <td>$${c.billed.toLocaleString()}</td>
+        <td>${c.totalHours.toFixed(1)}</td>
+        <td><strong>$${Math.round(c.effRate)}/hr</strong></td>
+        <td class="${diffClass}">${diffStr}</td>
+        <td><span class="verdict ${vClass}">${verdict}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Start with 2 clients
+  addClient();
+  addClient();
+</script>
+</body>
+</html>
