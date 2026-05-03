@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoloTax App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f7f4ef; color: #1a1814; font-family: 'Instrument Sans', sans-serif; font-weight: 300; line-height: 1.8; min-height: 100vh; padding: 2.5rem 1.5rem; opacity: 0; transition: opacity 0.25s ease; }
+    body.loaded { opacity: 1; }
+    .wrap { max-width: 520px; margin: 0 auto; }
+
+    /* NAV */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+    .nav-logo { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: #2d5a3d; text-decoration: none; }
+    .nav-logo span { color: #c4622d; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; font-size: 0.78rem; color: #aaa49e; }
+    .sign-out-btn { background: none; border: none; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; color: #aaa49e; cursor: pointer; padding: 0; }
+    .sign-out-btn:hover { color: #1a1814; }
+
+    /* AUTH SCREEN */
+    #auth-screen { display: none; }
+    #auth-screen.active { display: block; }
+    .auth-title { font-family: 'Instrument Serif', serif; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 400; margin-bottom: 0.5rem; }
+    .auth-sub { font-size: 0.9rem; color: #8a8278; margin-bottom: 2rem; }
+    .auth-form { display: flex; gap: 0; margin-bottom: 0.5rem; }
+    .auth-form input { flex: 1; background: #fff; border: 1px solid #ddd7cc; border-right: none; color: #1a1814; padding: 0.75rem 1rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.9rem; outline: none; border-radius: 2px 0 0 2px; }
+    .auth-form input:focus { border-color: #2d5a3d; }
+    .auth-form input::placeholder { color: #aaa49e; }
+    .auth-form button { background: #2d5a3d; color: #fff; border: none; padding: 0.75rem 1.25rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; border-radius: 0 2px 2px 0; transition: background 0.2s; white-space: nowrap; }
+    .auth-form button:hover { background: #4a7c5f; }
+    .auth-note { font-size: 0.75rem; color: #aaa49e; margin-bottom: 0.5rem; }
+    .auth-msg { font-size: 0.88rem; color: #2d5a3d; margin-top: 0.5rem; display: none; }
+    .auth-error { font-size: 0.88rem; color: #c4622d; margin-top: 0.5rem; display: none; }
+    .auth-terms { font-size: 0.72rem; color: #aaa49e; margin-top: 1.5rem; line-height: 1.6; }
+    .auth-terms a { color: #aaa49e; }
+
+    /* APP SCREEN */
+    #app-screen { display: none; }
+    #app-screen.active { display: block; }
+    .welcome { font-size: 0.82rem; color: #8a8278; margin-bottom: 2rem; }
+    .section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #aaa49e; margin-bottom: 1rem; }
+    .divider { border: none; border-top: 1px solid #ddd7cc; margin: 2rem 0; }
+
+    /* TOOLS GRID */
+    .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .tool-card { background: #fff; border: 1px solid #ddd7cc; padding: 1.25rem; text-decoration: none; color: #1a1814; transition: border-color 0.15s, background 0.15s; display: block; }
+    .tool-card:hover { border-color: #2d5a3d; background: #f0f7f2; }
+    .tool-card h3 { font-family: 'Instrument Serif', serif; font-size: 1rem; font-weight: 400; margin-bottom: 0.25rem; color: #2d5a3d; }
+    .tool-card p { font-size: 0.78rem; color: #8a8278; line-height: 1.5; margin: 0; }
+
+    /* CLIENT TRACKER */
+    .tracker-section { margin-top: 0.5rem; }
+    .client-row { background: #fff; border: 1px solid #ddd7cc; padding: 1rem; margin-bottom: 0.5rem; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem; }
+    .client-row-info h4 { font-size: 0.9rem; font-weight: 400; margin-bottom: 0.15rem; }
+    .client-row-info p { font-size: 0.75rem; color: #8a8278; margin: 0; }
+    .client-verdict { font-size: 0.68rem; padding: 0.2rem 0.5rem; }
+    .v-keep { background: #f0fdf4; color: #15803d; }
+    .v-raise { background: #fffbeb; color: #92400e; }
+    .v-reconsider { background: #fef2f2; color: #b91c1c; }
+    .empty-state { font-size: 0.85rem; color: #aaa49e; padding: 1.5rem; border: 1px dashed #ddd7cc; text-align: center; }
+
+    /* ADD CLIENT FORM */
+    .add-client-toggle { background: none; border: 1px solid #ddd7cc; font-family: 'Instrument Sans', sans-serif; font-size: 0.8rem; padding: 0.5rem 1rem; cursor: pointer; color: #5a5550; margin-top: 0.75rem; transition: all 0.15s; }
+    .add-client-toggle:hover { border-color: #2d5a3d; color: #2d5a3d; }
+    .add-client-form { display: none; background: #fff; border: 1px solid #ddd7cc; padding: 1.25rem; margin-top: 0.75rem; }
+    .add-client-form.open { display: block; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+    label { display: block; font-size: 0.75rem; color: #5a5550; margin-bottom: 0.2rem; }
+    input[type="text"], input[type="number"], input[type="email"] {
+      width: 100%; padding: 0.5rem 0.6rem; font-family: 'Instrument Sans', sans-serif;
+      font-size: 0.85rem; border: 1px solid #ddd7cc; background: #fafafa; color: #1a1814; outline: none;
+    }
+    input:focus { border-color: #2d5a3d; background: #fff; }
+    .form-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .save-btn { background: #2d5a3d; color: #fff; border: none; padding: 0.6rem 1.25rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .save-btn:hover { background: #4a7c5f; }
+    .cancel-btn { background: none; color: #aaa49e; border: 1px solid #ddd7cc; padding: 0.6rem 1rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.8rem; cursor: pointer; }
+    .cancel-btn:hover { border-color: #999; color: #666; }
+    .target-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+
+    /* LOADING */
+    .loading { font-size: 0.82rem; color: #aaa49e; padding: 2rem 0; }
+
+    footer { margin-top: 3rem; font-size: 0.73rem; color: #aaa49e; }
+    footer a { color: #aaa49e; }
+
+    @media (max-width: 480px) {
+      body { padding: 1.75rem 1rem; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .form-grid, .form-grid-3, .target-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="nav">
+    <a href="/" class="nav-logo">Solo<span>Tax</span></a>
+    <div class="nav-right">
+      <span id="nav-email"></span>
+      <button class="sign-out-btn" id="sign-out-btn" onclick="signOut()" style="display:none">Sign out</button>
+    </div>
+  </div>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <h1 class="auth-title">Sign in to SoloTax</h1>
+    <p class="auth-sub">Enter your email and we'll send you a magic link. No password needed.</p>
+    <div class="auth-form">
+      <input type="email" id="auth-email" placeholder="your@email.com" />
+      <button onclick="sendMagicLink()">Send link</button>
+    </div>
+    <p class="auth-note">We'll email you a link to sign in. Check your spam if it doesn't arrive.</p>
+    <p class="auth-msg" id="auth-msg">Check your email — link sent.</p>
+    <p class="auth-error" id="auth-error"></p>
+    <p class="auth-terms">By signing in you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>. SoloTax provides estimates, not tax advice.</p>
+  </div>
+
+  <!-- APP SCREEN -->
+  <div id="app-screen">
+    <p class="welcome" id="welcome-text"></p>
+
+    <p class="section-label">Tools</p>
+    <div class="tools-grid">
+      <a href="/estimate" class="tool-card">
+        <h3>Tax Estimator</h3>
+        <p>How much to set aside for quarterly taxes</p>
+      </a>
+      <a href="/smoother" class="tool-card">
+        <h3>Income Smoother</h3>
+        <p>How much you can safely pay yourself</p>
+      </a>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="section-label">Client profitability</p>
+    <div class="target-row">
+      <div>
+        <label>Target hourly rate ($)</label>
+        <input type="number" id="target-rate" value="75" min="1" onchange="saveSettings()" />
+      </div>
+      <div>
+        <label>Min acceptable rate ($)</label>
+        <input type="number" id="min-rate" value="50" min="1" onchange="saveSettings()" />
+      </div>
+    </div>
+
+    <div class="tracker-section">
+      <div id="clients-list"><p class="loading">Loading clients...</p></div>
+      <button class="add-client-toggle" onclick="toggleAddForm()">+ Add client</button>
+      <div class="add-client-form" id="add-form">
+        <div>
+          <label>Client name</label>
+          <input type="text" id="new-name" placeholder="e.g. Acme Corp" />
+        </div>
+        <div class="form-grid" style="margin-top:0.6rem">
+          <div>
+            <label>Total billed ($)</label>
+            <input type="number" id="new-billed" placeholder="5000" min="0" />
+          </div>
+          <div>
+            <label>Hours worked</label>
+            <input type="number" id="new-hours" placeholder="40" min="0" step="0.5" />
+          </div>
+        </div>
+        <div class="form-grid-3">
+          <div>
+            <label>Revision rounds</label>
+            <input type="number" id="new-revisions" placeholder="0" min="0" value="0" />
+          </div>
+          <div>
+            <label>Hrs per revision</label>
+            <input type="number" id="new-rev-hrs" placeholder="2" min="0" step="0.5" value="2" />
+          </div>
+          <div>
+            <label>Extra hrs (admin)</label>
+            <input type="number" id="new-extra" placeholder="0" min="0" step="0.5" value="0" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="save-btn" onclick="saveClient()">Save client</button>
+          <button class="cancel-btn" onclick="toggleAddForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <footer>
+      <p>SoloTax &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/terms">Terms</a></p>
+    </footer>
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://etjeirpsoielyzepglqw.supabase.co';
+  const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let clients = [];
+
+  // INIT
+  async function init() {
+    document.body.classList.add('loaded');
+
+    // Handle magic link callback
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (session) {
+      currentUser = session.user;
+      showApp();
+    } else {
+      showAuth();
+    }
+
+    // Listen for auth changes
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        showApp();
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        showAuth();
+      }
+    });
+  }
+
+  function showAuth() {
+    document.getElementById('auth-screen').classList.add('active');
+    document.getElementById('app-screen').classList.remove('active');
+    document.getElementById('sign-out-btn').style.display = 'none';
+    document.getElementById('nav-email').textContent = '';
+  }
+
+  async function showApp() {
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('app-screen').classList.add('active');
+    document.getElementById('sign-out-btn').style.display = 'inline';
+    document.getElementById('nav-email').textContent = currentUser.email;
+    document.getElementById('welcome-text').textContent = 'Signed in as ' + currentUser.email;
+    await loadSettings();
+    await loadClients();
+  }
+
+  // AUTH
+  async function sendMagicLink() {
+    const email = document.getElementById('auth-email').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('auth-email').style.borderColor = '#c4622d';
+      return;
+    }
+    document.getElementById('auth-error').style.display = 'none';
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: 'https://solotax.org/app' }
+    });
+    if (error) {
+      document.getElementById('auth-error').textContent = error.message;
+      document.getElementById('auth-error').style.display = 'block';
+    } else {
+      document.getElementById('auth-msg').style.display = 'block';
+    }
+  }
+
+  async function signOut() {
+    await sb.auth.signOut();
+  }
+
+  // SETTINGS
+  async function loadSettings() {
+    const { data } = await sb.from('settings').select('*').eq('user_id', currentUser.id).single();
+    if (data) {
+      document.getElementById('target-rate').value = data.target_rate || 75;
+      document.getElementById('min-rate').value = data.min_rate || 50;
+    }
+  }
+
+  async function saveSettings() {
+    const targetRate = parseFloat(document.getElementById('target-rate').value) || 75;
+    const minRate = parseFloat(document.getElementById('min-rate').value) || 50;
+    await sb.from('settings').upsert({ user_id: currentUser.id, target_rate: targetRate, min_rate: minRate }, { onConflict: 'user_id' });
+  }
+
+  // CLIENTS
+  async function loadClients() {
+    const { data, error } = await sb.from('clients').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    clients = data || [];
+    renderClients();
+  }
+
+  function renderClients() {
+    const targetRate = parseFloat(document.getElementById('target-rate').value) || 75;
+    const minRate = parseFloat(document.getElementById('min-rate').value) || 50;
+    const container = document.getElementById('clients-list');
+    if (clients.length === 0) {
+      container.innerHTML = '<p class="empty-state">No clients yet. Add your first one below.</p>';
+      return;
+    }
+    // Sort by effective rate
+    const sorted = [...clients].map(c => {
+      const totalHrs = c.hours + c.extra_hrs + (c.revisions * c.hrs_per_revision);
+      const effRate = totalHrs > 0 ? c.billed / totalHrs : 0;
+      return { ...c, totalHrs, effRate };
+    }).sort((a, b) => b.effRate - a.effRate);
+
+    container.innerHTML = sorted.map((c, i) => {
+      let verdict, vClass;
+      if (c.effRate >= targetRate) { verdict = 'KEEP'; vClass = 'v-keep'; }
+      else if (c.effRate >= minRate) { verdict = 'RAISE RATES'; vClass = 'v-raise'; }
+      else { verdict = 'RECONSIDER'; vClass = 'v-reconsider'; }
+      return `
+        <div class="client-row">
+          <div class="client-row-info">
+            <h4>${c.name}</h4>
+            <p>$${c.billed.toLocaleString()} billed &nbsp;·&nbsp; ${c.totalHrs.toFixed(1)} hrs &nbsp;·&nbsp; <strong>$${Math.round(c.effRate)}/hr</strong></p>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <span class="client-verdict ${vClass}">${verdict}</span>
+            <button onclick="deleteClient('${c.id}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.9rem;padding:0.25rem" title="Delete">×</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleAddForm() {
+    document.getElementById('add-form').classList.toggle('open');
+  }
+
+  async function saveClient() {
+    const name = document.getElementById('new-name').value.trim();
+    const billed = parseFloat(document.getElementById('new-billed').value) || 0;
+    const hours = parseFloat(document.getElementById('new-hours').value) || 0;
+    if (!name || billed <= 0 || hours <= 0) {
+      alert('Please fill in client name, billed amount, and hours worked.');
+      return;
+    }
+    const { error } = await sb.from('clients').insert({
+      user_id: currentUser.id,
+      name,
+      billed,
+      hours,
+      revisions: parseFloat(document.getElementById('new-revisions').value) || 0,
+      hrs_per_revision: parseFloat(document.getElementById('new-rev-hrs').value) || 2,
+      extra_hrs: parseFloat(document.getElementById('new-extra').value) || 0
+    });
+    if (error) { alert('Error saving client: ' + error.message); return; }
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-billed').value = '';
+    document.getElementById('new-hours').value = '';
+    document.getElementById('new-revisions').value = '0';
+    document.getElementById('new-rev-hrs').value = '2';
+    document.getElementById('new-extra').value = '0';
+    document.getElementById('add-form').classList.remove('open');
+    await loadClients();
+  }
+
+  async function deleteClient(id) {
+    if (!confirm('Delete this client?')) return;
+    await sb.from('clients').delete().eq('id', id);
+    await loadClients();
+  }
+
+  // KEYBOARD
+  document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && document.getElementById('auth-screen').classList.contains('active')) sendMagicLink();
+  });
+
+  // FADE
+  window.addEventListener('pageshow', function() { document.body.classList.add('loaded'); document.body.style.opacity = '1'; });
+  document.querySelectorAll('a[href]').forEach(function(link) {
+    var href = link.getAttribute('href');
+    if (!href || href.startsWith('mailto:') || href.startsWith('http') || href.startsWith('#')) return;
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.body.style.opacity = '0';
+      setTimeout(function() { window.location.href = href; }, 250);
+    });
+  });
+
+  init();
+</script>
+</body>
+</html>
