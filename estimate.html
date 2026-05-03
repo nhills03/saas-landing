@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tax Estimator — SoloTax</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: monospace; background: #fff; color: #111; padding: 2rem 1.5rem; font-size: 14px; line-height: 1.6; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+    h1 { font-size: 1rem; font-weight: bold; margin-bottom: 0.25rem; }
+    .sub { color: #666; margin-bottom: 2rem; font-size: 0.85rem; }
+    .back { font-size: 0.8rem; color: #666; text-decoration: none; display: inline-block; margin-bottom: 1.5rem; }
+    .back:hover { color: #000; }
+
+    label { display: block; font-size: 0.8rem; color: #444; margin-bottom: 0.25rem; margin-top: 1rem; }
+    input, select {
+      width: 100%; padding: 0.5rem 0.6rem; font-family: monospace;
+      font-size: 0.9rem; border: 1px solid #ccc; background: #fafafa;
+      color: #111; outline: none;
+    }
+    input:focus, select:focus { border-color: #111; background: #fff; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .tabs { display: flex; gap: 0; margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #ccc; }
+    .tab { flex: 1; padding: 0.5rem; text-align: center; cursor: pointer; font-family: monospace; font-size: 0.82rem; background: #fafafa; border: none; color: #666; }
+    .tab.active { background: #111; color: #fff; }
+
+    button#calc {
+      margin-top: 1.5rem; width: 100%; padding: 0.65rem;
+      background: #111; color: #fff; border: none; font-family: monospace;
+      font-size: 0.9rem; cursor: pointer;
+    }
+    button#calc:hover { background: #333; }
+
+    #results { display: none; margin-top: 2rem; border-top: 1px solid #ccc; padding-top: 1.5rem; }
+    .result-line { display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px dashed #e5e5e5; font-size: 0.88rem; }
+    .result-line:last-child { border-bottom: none; }
+    .result-line .label { color: #555; }
+    .result-line .value { font-weight: bold; }
+    .total-line { display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 1rem; font-weight: bold; margin-top: 0.5rem; border-top: 2px solid #111; }
+    .warn { color: #b91c1c; }
+    .good { color: #15803d; }
+
+    .quarterly { margin-top: 1.5rem; border-top: 1px solid #ccc; padding-top: 1rem; }
+    .quarterly h2 { font-size: 0.85rem; font-weight: bold; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .q-row { display: flex; justify-content: space-between; font-size: 0.82rem; padding: 0.3rem 0; border-bottom: 1px dashed #e5e5e5; }
+    .q-row .status { font-size: 0.72rem; padding: 0.1rem 0.4rem; }
+    .status-missed { background: #fef2f2; color: #b91c1c; }
+    .status-due { background: #fffbeb; color: #92400e; }
+    .status-upcoming { background: #f0fdf4; color: #15803d; }
+
+    .forward { margin-top: 1.5rem; border-top: 1px solid #ccc; padding-top: 1rem; font-size: 0.88rem; }
+    .forward h2 { font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .forward .rule { background: #f5f5f5; padding: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.5; }
+
+    .state-note { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+
+    footer { margin-top: 3rem; font-size: 0.72rem; color: #999; border-top: 1px solid #eee; padding-top: 1rem; }
+    footer a { color: #999; }
+
+    @media (max-width: 480px) { .row { grid-template-columns: 1fr; } body { padding: 1.25rem 1rem; } }
+
+    body { opacity: 0; transition: opacity 0.25s ease; }
+    body.loaded { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="/" class="back">← solotax.org</a>
+  <h1>Freelance Tax Estimator</h1>
+  <p class="sub">Federal + state estimate. Runs in your browser. Nothing is stored.</p>
+
+  <!-- TAX YEAR TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="setYear(2025, this)">2025 (reference)</button>
+    <button class="tab" onclick="setYear(2026, this)">2026 (current)</button>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="row">
+    <div>
+      <label>Gross freelance income ($)</label>
+      <input type="number" id="income" placeholder="35000" min="0" />
+    </div>
+    <div>
+      <label>Filing status</label>
+      <select id="filing">
+        <option value="single">Single</option>
+        <option value="mfj">Married filing jointly</option>
+        <option value="mfs">Married filing separately</option>
+        <option value="hoh">Head of household</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>State</label>
+      <select id="state"></select>
+    </div>
+    <div>
+      <label>Estimated payments made so far ($)</label>
+      <input type="number" id="paid" placeholder="0" min="0" value="0" />
+    </div>
+  </div>
+
+  <button id="calc" onclick="calculate()">Calculate</button>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="result-line"><span class="label">Gross freelance income</span><span class="value" id="r-gross"></span></div>
+    <div class="result-line"><span class="label">Net SE income (× 92.35%)</span><span class="value" id="r-net"></span></div>
+    <div class="result-line"><span class="label">Self-employment tax (15.3%)</span><span class="value" id="r-se"></span></div>
+    <div class="result-line"><span class="label">SE tax deduction (50%)</span><span class="value" id="r-se-ded"></span></div>
+    <div class="result-line"><span class="label">Standard deduction</span><span class="value" id="r-std"></span></div>
+    <div class="result-line"><span class="label">Federal taxable income</span><span class="value" id="r-taxable"></span></div>
+    <div class="result-line"><span class="label">Federal income tax</span><span class="value" id="r-fed"></span></div>
+    <div class="result-line"><span class="label">State income tax (est.)</span><span class="value" id="r-state"></span></div>
+    <div class="result-line"><span class="label">Estimated payments made</span><span class="value" id="r-paid"></span></div>
+    <div class="total-line"><span>Total still owed</span><span id="r-total" class="warn"></span></div>
+    <p class="state-note" id="state-note"></p>
+
+    <!-- QUARTERLY BREAKDOWN -->
+    <div class="quarterly">
+      <h2>Quarterly payment schedule</h2>
+      <div id="q-rows"></div>
+    </div>
+
+    <!-- GOING FORWARD -->
+    <div class="forward">
+      <h2>Going forward</h2>
+      <p>Based on your income, every time you get paid set aside:</p>
+      <div class="rule" id="r-rule"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Estimates only. Not tax advice. Consult a CPA for your specific situation. &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a></p>
+  </footer>
+
+</div>
+
+<script>
+  var TAX_YEAR = 2026;
+
+  // Standard deductions
+  var STD_DED = {
+    2025: { single: 14600, mfj: 29200, mfs: 14600, hoh: 21900 },
+    2026: { single: 15000, mfj: 30000, mfs: 15000, hoh: 22500 }
+  };
+
+  // Federal brackets [rate, min, max] — single
+  var BRACKETS = {
+    2025: {
+      single: [[0.10,0,11925],[0.12,11925,48475],[0.22,48475,103350],[0.24,103350,197300],[0.32,197300,250525],[0.35,250525,626350],[0.37,626350,Infinity]],
+      mfj:    [[0.10,0,23850],[0.12,23850,96950],[0.22,96950,206700],[0.24,206700,394600],[0.32,394600,501050],[0.35,501050,751600],[0.37,751600,Infinity]],
+      mfs:    [[0.10,0,11925],[0.12,11925,48475],[0.22,48475,103350],[0.24,103350,197300],[0.32,197300,250525],[0.35,250525,375800],[0.37,375800,Infinity]],
+      hoh:    [[0.10,0,17000],[0.12,17000,64850],[0.22,64850,103350],[0.24,103350,197300],[0.32,197300,250500],[0.35,250500,626350],[0.37,626350,Infinity]]
+    },
+    2026: {
+      single: [[0.10,0,12300],[0.12,12300,49750],[0.22,49750,106150],[0.24,106150,202550],[0.32,202550,257200],[0.35,257200,643000],[0.37,643000,Infinity]],
+      mfj:    [[0.10,0,24600],[0.12,24600,99500],[0.22,99500,212300],[0.24,212300,405100],[0.32,405100,514400],[0.35,514400,771600],[0.37,771600,Infinity]],
+      mfs:    [[0.10,0,12300],[0.12,12300,49750],[0.22,49750,106150],[0.24,106150,202550],[0.32,202550,257200],[0.35,257200,385800],[0.37,385800,Infinity]],
+      hoh:    [[0.10,0,17450],[0.12,17450,66700],[0.22,66700,106150],[0.24,106150,202550],[0.32,202550,257150],[0.35,257150,643000],[0.37,643000,Infinity]]
+    }
+  };
+
+  // State tax rates (flat or simplified effective rate for self-employed)
+  var STATE_TAX = {
+    "AL":0.05,"AK":0,"AZ":0.025,"AR":0.044,"CA":0.093,"CO":0.044,"CT":0.05,
+    "DE":0.066,"FL":0,"GA":0.055,"HI":0.08,"ID":0.058,"IL":0.0495,"IN":0.0315,
+    "IA":0.057,"KS":0.057,"KY":0.045,"LA":0.0425,"ME":0.0715,"MD":0.0575,
+    "MA":0.09,"MI":0.0425,"MN":0.0985,"MS":0.05,"MO":0.048,"MT":0.069,
+    "NE":0.0664,"NV":0,"NH":0,"NJ":0.0637,"NM":0.059,"NY":0.0685,"NC":0.0475,
+    "ND":0.025,"OH":0.035,"OK":0.05,"OR":0.099,"PA":0.0307,"RI":0.0599,
+    "SC":0.07,"SD":0,"TN":0,"TX":0,"UT":0.0485,"VT":0.0875,"VA":0.0575,
+    "WA":0,"WV":0.065,"WI":0.0765,"WY":0,"DC":0.085
+  };
+
+  var STATE_NAMES = {
+    "AL":"Alabama","AK":"Alaska","AZ":"Arizona","AR":"Arkansas","CA":"California",
+    "CO":"Colorado","CT":"Connecticut","DE":"Delaware","FL":"Florida","GA":"Georgia",
+    "HI":"Hawaii","ID":"Idaho","IL":"Illinois","IN":"Indiana","IA":"Iowa",
+    "KS":"Kansas","KY":"Kentucky","LA":"Louisiana","ME":"Maine","MD":"Maryland",
+    "MA":"Massachusetts","MI":"Michigan","MN":"Minnesota","MS":"Mississippi",
+    "MO":"Missouri","MT":"Montana","NE":"Nebraska","NV":"Nevada","NH":"New Hampshire",
+    "NJ":"New Jersey","NM":"New Mexico","NY":"New York","NC":"North Carolina",
+    "ND":"North Dakota","OH":"Ohio","OK":"Oklahoma","OR":"Oregon","PA":"Pennsylvania",
+    "RI":"Rhode Island","SC":"South Carolina","SD":"South Dakota","TN":"Tennessee",
+    "TX":"Texas","UT":"Utah","VT":"Vermont","VA":"Virginia","WA":"Washington",
+    "WV":"West Virginia","WI":"Wisconsin","WY":"Wyoming","DC":"Washington D.C."
+  };
+
+  // Quarterly deadlines
+  var Q_DATES = {
+    2025: [
+      { label: "Q1 2025", deadline: "April 15, 2025", due: new Date("2025-04-15"), pct: 0.25 },
+      { label: "Q2 2025", deadline: "June 16, 2025", due: new Date("2025-06-16"), pct: 0.25 },
+      { label: "Q3 2025", deadline: "Sept 15, 2025", due: new Date("2025-09-15"), pct: 0.25 },
+      { label: "Q4 2025", deadline: "Jan 15, 2026", due: new Date("2026-01-15"), pct: 0.25 }
+    ],
+    2026: [
+      { label: "Q1 2026", deadline: "April 15, 2026", due: new Date("2026-04-15"), pct: 0.25 },
+      { label: "Q2 2026", deadline: "June 15, 2026", due: new Date("2026-06-15"), pct: 0.25 },
+      { label: "Q3 2026", deadline: "Sept 15, 2026", due: new Date("2026-09-15"), pct: 0.25 },
+      { label: "Q4 2026", deadline: "Jan 15, 2027", due: new Date("2027-01-15"), pct: 0.25 }
+    ]
+  };
+
+  // Populate state dropdown
+  (function() {
+    var sel = document.getElementById('state');
+    var codes = Object.keys(STATE_NAMES).sort(function(a,b){ return STATE_NAMES[a].localeCompare(STATE_NAMES[b]); });
+    codes.forEach(function(c) {
+      var o = document.createElement('option');
+      o.value = c;
+      o.textContent = STATE_NAMES[c];
+      if (c === 'TX') o.selected = true;
+      sel.appendChild(o);
+    });
+  })();
+
+  function setYear(y, btn) {
+    TAX_YEAR = y;
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('results').style.display = 'none';
+  }
+
+  function fmt(n) {
+    return '$' + Math.round(n).toLocaleString();
+  }
+
+  function calcFedTax(taxable, filing) {
+    var brackets = BRACKETS[TAX_YEAR][filing];
+    var tax = 0;
+    for (var i = 0; i < brackets.length; i++) {
+      var b = brackets[i];
+      if (taxable <= b[1]) break;
+      var portion = Math.min(taxable, b[2]) - b[1];
+      if (portion <= 0) continue;
+      tax += portion * b[0];
+    }
+    return Math.max(0, tax);
+  }
+
+  function calculate() {
+    var income = parseFloat(document.getElementById('income').value) || 0;
+    var filing = document.getElementById('filing').value;
+    var stateCode = document.getElementById('state').value;
+    var paid = parseFloat(document.getElementById('paid').value) || 0;
+
+    if (income <= 0) { alert('Please enter your gross freelance income.'); return; }
+
+    // Core SE tax calculation
+    var netSE = income * 0.9235;
+    var seTax = netSE * 0.153;
+    var seDed = seTax * 0.5;
+    var stdDed = STD_DED[TAX_YEAR][filing];
+    var taxableIncome = Math.max(0, income - seDed - stdDed);
+    var fedTax = calcFedTax(taxableIncome, filing);
+    var stateRate = STATE_TAX[stateCode] || 0;
+    var stateTax = taxableIncome * stateRate;
+    var totalOwed = seTax + fedTax + stateTax;
+    var stillOwed = Math.max(0, totalOwed - paid);
+    var effectiveRate = income > 0 ? (totalOwed / income) * 100 : 0;
+
+    // Display results
+    document.getElementById('r-gross').textContent = fmt(income);
+    document.getElementById('r-net').textContent = fmt(netSE);
+    document.getElementById('r-se').textContent = fmt(seTax);
+    document.getElementById('r-se-ded').textContent = '-' + fmt(seDed);
+    document.getElementById('r-std').textContent = '-' + fmt(stdDed);
+    document.getElementById('r-taxable').textContent = fmt(taxableIncome);
+    document.getElementById('r-fed').textContent = fmt(fedTax);
+    document.getElementById('r-state').textContent = fmt(stateTax);
+    document.getElementById('r-paid').textContent = paid > 0 ? '-' + fmt(paid) : '$0';
+    document.getElementById('r-total').textContent = fmt(stillOwed);
+    document.getElementById('r-total').className = stillOwed > 0 ? 'warn' : 'good';
+
+    // State note
+    var noteEl = document.getElementById('state-note');
+    if (stateRate === 0) {
+      noteEl.textContent = STATE_NAMES[stateCode] + ' has no state income tax.';
+    } else {
+      noteEl.textContent = 'State rate is a simplified effective estimate for ' + STATE_NAMES[stateCode] + '. Actual rate may vary.';
+    }
+
+    // Quarterly breakdown
+    var today = new Date();
+    var qRows = document.getElementById('q-rows');
+    qRows.innerHTML = '';
+    var quarters = Q_DATES[TAX_YEAR];
+    var perQ = totalOwed / 4;
+    quarters.forEach(function(q) {
+      var status, statusClass;
+      if (q.due < today) {
+        status = 'PAST DUE';
+        statusClass = 'status-missed';
+      } else if (q.due - today < 30 * 24 * 60 * 60 * 1000) {
+        status = 'DUE SOON';
+        statusClass = 'status-due';
+      } else {
+        status = 'UPCOMING';
+        statusClass = 'status-upcoming';
+      }
+      var row = document.createElement('div');
+      row.className = 'q-row';
+      row.innerHTML = '<span>' + q.label + ' — ' + q.deadline + '</span><span style="display:flex;align-items:center;gap:0.5rem"><span class="status ' + statusClass + '">' + status + '</span><strong>' + fmt(perQ) + '</strong></span>';
+      qRows.appendChild(row);
+    });
+
+    // Going forward rule
+    var pct = Math.ceil(effectiveRate / 5) * 5;
+    pct = Math.max(25, Math.min(45, pct));
+    document.getElementById('r-rule').innerHTML =
+      '<strong>' + pct + '% of every payment</strong> (' + fmt(income * pct / 100 / 12) + '/mo at current income)<br>' +
+      '<span style="font-size:0.78rem;color:#666">Move it to a separate account immediately. Don\'t touch it until your next quarterly payment.</span>';
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('loaded');
+  });
+  document.querySelectorAll('a[href]').forEach(function(link) {
+    var href = link.getAttribute('href');
+    if (!href || href.startsWith('mailto:') || href.startsWith('http') || href.startsWith('#')) return;
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.body.style.opacity = '0';
+      setTimeout(function() { window.location.href = href; }, 250);
+    });
+  });
+</script>
+</body>
+</html>
