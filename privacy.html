@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — SoloTax</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f7f4ef; color: #1a1814; font-family: 'Instrument Sans', sans-serif; font-weight: 300; line-height: 1.8; min-height: 100vh; padding: 5rem 1.5rem; opacity: 0; transition: opacity 0.25s ease; }
+    body.loaded { opacity: 1; }
+    .wrap { max-width: 520px; margin: 0 auto; }
+    .back { font-size: 0.78rem; color: #aaa49e; text-decoration: none; display: inline-block; margin-bottom: 3rem; }
+    .back:hover { color: #2d5a3d; }
+    h1 { font-family: 'Instrument Serif', serif; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 400; color: #1a1814; margin-bottom: 2rem; letter-spacing: -0.01em; }
+    h2 { font-family: 'Instrument Serif', serif; font-size: 1.1rem; font-weight: 400; color: #1a1814; margin-top: 2rem; margin-bottom: 0.5rem; }
+    p { font-size: 0.95rem; color: #5a5550; margin-bottom: 1rem; }
+    ul { list-style: none; margin-bottom: 1rem; padding: 0; }
+    ul li { font-size: 0.95rem; color: #5a5550; padding: 0.15rem 0 0.15rem 1.25rem; position: relative; }
+    ul li::before { content: '—'; position: absolute; left: 0; color: #ddd7cc; }
+    a { color: #2d5a3d; }
+    .divider { border: none; border-top: 1px solid #ddd7cc; margin: 2rem 0; }
+    .updated { font-size: 0.75rem; color: #aaa49e; margin-top: 2rem; }
+    footer { margin-top: 3.5rem; font-size: 0.75rem; color: #aaa49e; }
+    footer a { color: #aaa49e; }
+    @media (max-width: 480px) { body { padding: 3rem 1.25rem; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <a href="/" class="back">← SoloTax</a>
+    <h1>Privacy Policy</h1>
+
+    <p>SoloTax is a financial estimation tool for freelancers. This policy explains what data we collect and how we use it.</p>
+
+    <h2>What we collect</h2>
+    <p>When you use the free browser tools (tax estimator, income smoother, client profitability tracker), no data is collected. All calculations run in your browser and nothing is sent to our servers.</p>
+    <p>When you create an account, we collect:</p>
+    <ul>
+      <li>Your email address</li>
+      <li>Financial data you enter (income, expenses, client information)</li>
+      <li>Usage data (pages visited, features used)</li>
+    </ul>
+    <p>When you join the waitlist or submit feedback, we collect your email address and your responses. These go to Formspree and Google Forms respectively.</p>
+
+    <hr class="divider" />
+
+    <h2>How we use it</h2>
+    <p>We use your data to provide the service — nothing else. We do not sell your data. We do not share it with third parties except the services required to operate SoloTax (Supabase for database, Stripe for payment processing, Cloudflare for hosting).</p>
+
+    <hr class="divider" />
+
+    <h2>Stripe</h2>
+    <p>If you connect your Stripe account, SoloTax reads your transaction data to log income automatically. We store transaction amounts and dates. We never store payment card information.</p>
+
+    <hr class="divider" />
+
+    <h2>Your rights</h2>
+    <p>You can request deletion of your account and all associated data at any time by emailing <a href="mailto:nick@solotax.org">nick@solotax.org</a>. We will delete your data within 7 days.</p>
+    <p>You can request a copy of all data we hold about you by emailing <a href="mailto:nick@solotax.org">nick@solotax.org</a>.</p>
+
+    <hr class="divider" />
+
+    <h2>Data security</h2>
+    <p>Your data is stored in Supabase, which encrypts data at rest and in transit. SoloTax is served over HTTPS via Cloudflare.</p>
+
+    <hr class="divider" />
+
+    <h2>Data retention</h2>
+    <p>We keep your data for as long as your account is active. If you delete your account, all data is permanently deleted within 7 days.</p>
+
+    <hr class="divider" />
+
+    <h2>Changes</h2>
+    <p>If this policy changes in a way that affects how we handle your data, we will email you before the change takes effect.</p>
+
+    <p>Questions: <a href="mailto:nick@solotax.org">nick@solotax.org</a></p>
+
+    <p class="updated">Last updated: May 2026</p>
+
+    <footer>
+      <p>SoloTax &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a> &nbsp;·&nbsp; <a href="/terms">Terms</a></p>
+    </footer>
+
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() { document.body.classList.add('loaded'); });
+    window.addEventListener('pageshow', function() { document.body.classList.add('loaded'); document.body.style.opacity = '1'; });
+    document.querySelectorAll('a[href]').forEach(function(link) {
+      var href = link.getAttribute('href');
+      if (!href || href.startsWith('mailto:') || href.startsWith('http') || href.startsWith('#')) return;
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.body.style.opacity = '0';
+        setTimeout(function() { window.location.href = href; }, 250);
+      });
+    });
+  </script>
+</body>
+</html>
