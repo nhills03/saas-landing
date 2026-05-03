@@ -277,7 +277,7 @@
 
   // SETTINGS
   async function loadSettings() {
-    const { data } = await sb.from('settings').select('*').eq('user_id', currentUser.id).single();
+    const { data } = await sb.from('settings').select('*').eq('user_id', currentUser.id).maybeSingle();
     if (data) {
       document.getElementById('target-rate').value = data.target_rate || 75;
       document.getElementById('min-rate').value = data.min_rate || 50;
