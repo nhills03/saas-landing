@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/estimate", "destination": "/estimate.html" },
+    { "source": "/smoother", "destination": "/smoother.html" },
+    { "source": "/clients", "destination": "/clients.html" },
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/income", "destination": "/income.html" }
+  ]
+}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Income — SoloTax</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f7f4ef; color: #1a1814; font-family: 'Instrument Sans', sans-serif; font-weight: 300; line-height: 1.8; min-height: 100vh; padding: 2.5rem 1.5rem; opacity: 0; transition: opacity 0.25s ease; }
+    body.loaded { opacity: 1; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+
+    /* NAV */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+    .nav-logo { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: #2d5a3d; text-decoration: none; }
+    .nav-logo span { color: #c4622d; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; font-size: 0.78rem; }
+    .nav-link { color: #aaa49e; text-decoration: none; }
+    .nav-link:hover { color: #1a1814; }
+    .sign-out-btn { background: none; border: none; font-family: 'Instrument Sans', sans-serif; font-size: 0.78rem; color: #aaa49e; cursor: pointer; padding: 0; }
+    .sign-out-btn:hover { color: #1a1814; }
+
+    /* AUTH */
+    #auth-screen { display: none; }
+    #auth-screen.active { display: block; }
+    .auth-title { font-family: 'Instrument Serif', serif; font-size: 1.8rem; font-weight: 400; margin-bottom: 0.5rem; }
+    .auth-sub { font-size: 0.9rem; color: #8a8278; margin-bottom: 1.5rem; }
+    .auth-form { display: flex; gap: 0; margin-bottom: 0.5rem; }
+    .auth-form input { flex: 1; background: #fff; border: 1px solid #ddd7cc; border-right: none; color: #1a1814; padding: 0.75rem 1rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.9rem; outline: none; border-radius: 2px 0 0 2px; }
+    .auth-form input:focus { border-color: #2d5a3d; }
+    .auth-form button { background: #2d5a3d; color: #fff; border: none; padding: 0.75rem 1.25rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; border-radius: 0 2px 2px 0; }
+    .auth-msg { font-size: 0.85rem; color: #2d5a3d; margin-top: 0.5rem; display: none; }
+
+    /* APP */
+    #app-screen { display: none; }
+    #app-screen.active { display: block; }
+
+    /* SUMMARY */
+    .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid #ddd7cc; margin-bottom: 2rem; background: #fff; }
+    .summary-box { padding: 1.25rem 1rem; border-right: 1px solid #ddd7cc; }
+    .summary-box:last-child { border-right: none; }
+    .s-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #aaa49e; margin-bottom: 0.35rem; }
+    .s-value { font-family: 'Instrument Serif', serif; font-size: 1.4rem; color: #1a1814; line-height: 1.1; }
+    .s-value.accent { color: #2d5a3d; }
+    .s-value.warn { color: #c4622d; }
+
+    /* TAX SET-ASIDE SETTING */
+    .setting-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem; font-size: 0.85rem; color: #5a5550; }
+    .setting-row input { width: 60px; padding: 0.35rem 0.5rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.85rem; border: 1px solid #ddd7cc; background: #fff; color: #1a1814; outline: none; text-align: center; }
+    .setting-row input:focus { border-color: #2d5a3d; }
+    .setting-saved { font-size: 0.72rem; color: #2d5a3d; display: none; }
+
+    /* LOG FORM */
+    .section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #aaa49e; margin-bottom: 1rem; }
+    .log-form { background: #fff; border: 1px solid #ddd7cc; padding: 1.25rem; margin-bottom: 1.75rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+    label { display: block; font-size: 0.75rem; color: #5a5550; margin-bottom: 0.2rem; }
+    input[type="number"], input[type="date"], input[type="text"], input[type="email"], select {
+      width: 100%; padding: 0.5rem 0.6rem; font-family: 'Instrument Sans', sans-serif;
+      font-size: 0.88rem; border: 1px solid #ddd7cc; background: #fafafa; color: #1a1814; outline: none;
+    }
+    input:focus, select:focus { border-color: #2d5a3d; background: #fff; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa49e'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.6rem center; padding-right: 1.5rem; }
+    .log-btn { background: #2d5a3d; color: #fff; border: none; padding: 0.65rem 1.5rem; font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .log-btn:hover { background: #4a7c5f; }
+    .tax-preview { font-size: 0.78rem; color: #8a8278; margin-top: 0.6rem; min-height: 1.2rem; }
+    .tax-preview span { color: #c4622d; font-weight: 500; }
+
+    /* PAYMENTS LIST */
+    .payments-list { display: flex; flex-direction: column; gap: 0; }
+    .payment-row { background: #fff; border: 1px solid #ddd7cc; border-bottom: none; padding: 0.9rem 1rem; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem; }
+    .payment-row:last-child { border-bottom: 1px solid #ddd7cc; }
+    .payment-row:hover { background: #fafaf8; }
+    .payment-info h4 { font-size: 0.9rem; font-weight: 400; margin-bottom: 0.1rem; }
+    .payment-info p { font-size: 0.72rem; color: #aaa49e; margin: 0; }
+    .payment-right { text-align: right; }
+    .payment-amount { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: #2d5a3d; }
+    .payment-tax { font-size: 0.7rem; color: #c4622d; }
+    .payment-delete { background: none; border: none; color: #ddd7cc; cursor: pointer; font-size: 0.9rem; padding: 0.2rem 0.3rem; margin-left: 0.5rem; transition: color 0.15s; }
+    .payment-delete:hover { color: #b91c1c; }
+    .empty-state { font-size: 0.85rem; color: #aaa49e; padding: 1.5rem; border: 1px dashed #ddd7cc; text-align: center; }
+
+    /* MONTH GROUPS */
+    .month-header { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa49e; padding: 0.75rem 0 0.4rem; border-top: 1px solid #ddd7cc; margin-top: 1rem; }
+    .month-header:first-child { border-top: none; margin-top: 0; }
+
+    .divider { border: none; border-top: 1px solid #ddd7cc; margin: 2rem 0; }
+    .loading { font-size: 0.82rem; color: #aaa49e; padding: 1rem 0; }
+    footer { margin-top: 3rem; font-size: 0.73rem; color: #aaa49e; }
+    footer a { color: #aaa49e; }
+
+    @media (max-width: 480px) {
+      body { padding: 1.75rem 1rem; }
+      .summary { grid-template-columns: 1fr; }
+      .summary-box { border-right: none; border-bottom: 1px solid #ddd7cc; }
+      .summary-box:last-child { border-bottom: none; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="nav">
+    <a href="/app" class="nav-logo">Solo<span>Tax</span></a>
+    <div class="nav-right">
+      <a href="/app" class="nav-link">← Account</a>
+      <span id="nav-email" style="color:#aaa49e"></span>
+      <button class="sign-out-btn" id="sign-out-btn" onclick="signOut()" style="display:none">Sign out</button>
+    </div>
+  </div>
+
+  <!-- AUTH -->
+  <div id="auth-screen">
+    <h1 class="auth-title">Sign in to continue</h1>
+    <p class="auth-sub">Enter your email for a magic link.</p>
+    <div class="auth-form">
+      <input type="email" id="auth-email" placeholder="your@email.com" />
+      <button onclick="sendMagicLink()">Send link</button>
+    </div>
+    <p class="auth-msg" id="auth-msg">Check your email.</p>
+  </div>
+
+  <!-- APP -->
+  <div id="app-screen">
+
+    <!-- SUMMARY -->
+    <div class="summary">
+      <div class="summary-box">
+        <div class="s-label">This month</div>
+        <div class="s-value accent" id="s-month">$0</div>
+      </div>
+      <div class="summary-box">
+        <div class="s-label">Tax set aside</div>
+        <div class="s-value warn" id="s-tax">$0</div>
+      </div>
+      <div class="summary-box">
+        <div class="s-label">This year</div>
+        <div class="s-value" id="s-year">$0</div>
+      </div>
+    </div>
+
+    <!-- TAX % SETTING -->
+    <div class="setting-row">
+      Set aside
+      <input type="number" id="tax-pct" value="30" min="1" max="60" onchange="saveTaxPct()" />
+      % of every payment for taxes.
+      <span class="setting-saved" id="pct-saved">Saved</span>
+    </div>
+
+    <!-- LOG FORM -->
+    <p class="section-label">Log a payment</p>
+    <div class="log-form">
+      <div class="form-row">
+        <div>
+          <label>Amount ($)</label>
+          <input type="number" id="new-amount" placeholder="3000" min="0" oninput="updateTaxPreview()" />
+        </div>
+        <div>
+          <label>Date received</label>
+          <input type="date" id="new-date" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Client (optional)</label>
+          <select id="new-client">
+            <option value="">— none —</option>
+          </select>
+        </div>
+        <div>
+          <label>Note (optional)</label>
+          <input type="text" id="new-note" placeholder="Invoice #42, project name..." />
+        </div>
+      </div>
+      <button class="log-btn" onclick="logPayment()">Log payment</button>
+      <p class="tax-preview" id="tax-preview"></p>
+    </div>
+
+    <!-- PAYMENTS LIST -->
+    <p class="section-label">Payment history</p>
+    <div id="payments-list"><p class="loading">Loading...</p></div>
+
+    <hr class="divider" />
+    <footer>
+      <p>SoloTax &nbsp;·&nbsp; <a href="mailto:nick@solotax.org">nick@solotax.org</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/terms">Terms</a></p>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://etjeirpsoielyzepglqw.supabase.co';
+  const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  let payments = [];
+  let clients = [];
+  let taxPct = 30;
+
+  async function init() {
+    document.body.classList.add('loaded');
+    // Set today as default date
+    document.getElementById('new-date').value = new Date().toISOString().split('T')[0];
+
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      showApp();
+    } else {
+      showAuth();
+    }
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) { currentUser = session.user; showApp(); }
+      else if (event === 'SIGNED_OUT') { currentUser = null; showAuth(); }
+    });
+  }
+
+  function showAuth() {
+    document.getElementById('auth-screen').classList.add('active');
+    document.getElementById('app-screen').classList.remove('active');
+    document.getElementById('sign-out-btn').style.display = 'none';
+  }
+
+  async function showApp() {
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('app-screen').classList.add('active');
+    document.getElementById('sign-out-btn').style.display = 'inline';
+    document.getElementById('nav-email').textContent = currentUser.email;
+    await Promise.all([loadSettings(), loadClients(), loadPayments()]);
+  }
+
+  async function sendMagicLink() {
+    const email = document.getElementById('auth-email').value.trim();
+    if (!email) return;
+    await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://solotax.org/income' } });
+    document.getElementById('auth-msg').style.display = 'block';
+  }
+
+  async function signOut() { await sb.auth.signOut(); }
+
+  // SETTINGS
+  async function loadSettings() {
+    const { data } = await sb.from('settings').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (data) {
+      taxPct = data.tax_pct || 30;
+      document.getElementById('tax-pct').value = taxPct;
+    }
+  }
+
+  async function saveTaxPct() {
+    taxPct = parseFloat(document.getElementById('tax-pct').value) || 30;
+    await sb.from('settings').upsert({ user_id: currentUser.id, tax_pct: taxPct }, { onConflict: 'user_id' });
+    const saved = document.getElementById('pct-saved');
+    saved.style.display = 'inline';
+    setTimeout(() => { saved.style.display = 'none'; }, 2000);
+    updateTaxPreview();
+  }
+
+  // CLIENTS
+  async function loadClients() {
+    const { data } = await sb.from('clients').select('id, name').eq('user_id', currentUser.id).order('name');
+    clients = data || [];
+    const sel = document.getElementById('new-client');
+    sel.innerHTML = '<option value="">— none —</option>';
+    clients.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id;
+      o.textContent = c.name;
+      sel.appendChild(o);
+    });
+  }
+
+  // TAX PREVIEW
+  function updateTaxPreview() {
+    const amount = parseFloat(document.getElementById('new-amount').value) || 0;
+    const preview = document.getElementById('tax-preview');
+    if (amount <= 0) { preview.innerHTML = ''; return; }
+    const setAside = amount * (taxPct / 100);
+    preview.innerHTML = 'Set aside <span>$' + Math.round(setAside).toLocaleString() + '</span> for taxes. Keep $' + Math.round(amount - setAside).toLocaleString() + '.';
+  }
+
+  // PAYMENTS
+  async function loadPayments() {
+    const { data, error } = await sb.from('income').select('*').eq('user_id', currentUser.id).order('date', { ascending: false });
+    if (error) { console.error(error); return; }
+    payments = data || [];
+    renderPayments();
+    updateSummary();
+  }
+
+  function renderPayments() {
+    const container = document.getElementById('payments-list');
+    if (payments.length === 0) {
+      container.innerHTML = '<p class="empty-state">No payments logged yet.</p>';
+      return;
+    }
+
+    // Group by month
+    const groups = {};
+    payments.forEach(p => {
+      const d = new Date(p.date + 'T12:00:00');
+      const key = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(p);
+    });
+
+    let html = '';
+    Object.keys(groups).forEach((month, i) => {
+      const monthTotal = groups[month].reduce((s, p) => s + p.amount, 0);
+      html += `<div class="month-header">${month} &nbsp;·&nbsp; $${Math.round(monthTotal).toLocaleString()}</div>`;
+      html += '<div class="payments-list">';
+      groups[month].forEach(p => {
+        const clientName = p.client_id ? (clients.find(c => c.id === p.client_id)?.name || '') : '';
+        const taxAmt = Math.round(p.amount * (p.tax_pct / 100));
+        html += `
+          <div class="payment-row">
+            <div class="payment-info">
+              <h4>$${p.amount.toLocaleString()}${clientName ? ' — ' + clientName : ''}</h4>
+              <p>${new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${p.note ? ' · ' + p.note : ''}</p>
+            </div>
+            <div style="display:flex;align-items:center">
+              <div class="payment-right">
+                <div class="payment-amount">+$${p.amount.toLocaleString()}</div>
+                <div class="payment-tax">-$${taxAmt.toLocaleString()} tax</div>
+              </div>
+              <button class="payment-delete" onclick="deletePayment('${p.id}')" title="Delete">×</button>
+            </div>
+          </div>`;
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function updateSummary() {
+    const now = new Date();
+    const thisMonth = payments.filter(p => {
+      const d = new Date(p.date + 'T12:00:00');
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const thisYear = payments.filter(p => {
+      const d = new Date(p.date + 'T12:00:00');
+      return d.getFullYear() === now.getFullYear();
+    });
+    const monthTotal = thisMonth.reduce((s, p) => s + p.amount, 0);
+    const yearTotal = thisYear.reduce((s, p) => s + p.amount, 0);
+    const taxTotal = thisYear.reduce((s, p) => s + (p.amount * p.tax_pct / 100), 0);
+
+    document.getElementById('s-month').textContent = '$' + Math.round(monthTotal).toLocaleString();
+    document.getElementById('s-tax').textContent = '$' + Math.round(taxTotal).toLocaleString();
+    document.getElementById('s-year').textContent = '$' + Math.round(yearTotal).toLocaleString();
+  }
+
+  async function logPayment() {
+    const amount = parseFloat(document.getElementById('new-amount').value) || 0;
+    const date = document.getElementById('new-date').value;
+    const clientId = document.getElementById('new-client').value || null;
+    const note = document.getElementById('new-note').value.trim();
+
+    if (amount <= 0) { alert('Please enter a payment amount.'); return; }
+    if (!date) { alert('Please select a date.'); return; }
+
+    const { error } = await sb.from('income').insert({
+      user_id: currentUser.id,
+      amount,
+      date,
+      client_id: clientId,
+      note,
+      tax_pct: taxPct
+    });
+
+    if (error) { alert('Error saving payment: ' + error.message); return; }
+
+    document.getElementById('new-amount').value = '';
+    document.getElementById('new-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('new-client').value = '';
+    document.getElementById('new-note').value = '';
+    document.getElementById('tax-preview').innerHTML = '';
+
+    await loadPayments();
+  }
+
+  async function deletePayment(id) {
+    if (!confirm('Delete this payment?')) return;
+    await sb.from('income').delete().eq('id', id);
+    await loadPayments();
+  }
+
+  // FADE
+  window.addEventListener('pageshow', function() { document.body.classList.add('loaded'); document.body.style.opacity = '1'; });
+  document.querySelectorAll('a[href]').forEach(function(link) {
+    var href = link.getAttribute('href');
+    if (!href || href.startsWith('mailto:') || href.startsWith('http') || href.startsWith('#')) return;
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.body.style.opacity = '0';
+      setTimeout(function() { window.location.href = href; }, 250);
+    });
+  });
+
+  init();
+</script>
+</body>
+</html>
